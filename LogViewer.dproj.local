@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2023.10.06 23:56:00.764,=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2023.10.06 23:57:40.968,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\Main.dfm=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2023.10.06 23:57:40.968,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\Main.pas=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2023.10.06 23:57:47.728,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\LogViewer.dproj=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Project2.dproj</Transaction>
+  </Transactions>
+</BorlandProject>
