@@ -2,8 +2,8 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'DNSLogViwer'
-  ClientHeight = 143
-  ClientWidth = 535
+  ClientHeight = 61
+  ClientWidth = 377
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,8 +15,8 @@ object MainForm: TMainForm
   TextHeight = 15
   object StatBar: TStatusBar
     Left = 0
-    Top = 124
-    Width = 535
+    Top = 42
+    Width = 377
     Height = 19
     Panels = <
       item
@@ -25,9 +25,17 @@ object MainForm: TMainForm
     ExplicitTop = 537
     ExplicitWidth = 999
   end
-  object Menu: TMainMenu
+  object PB: TProgressBar
     Left = 8
-    Top = 56
+    Top = 8
+    Width = 361
+    Height = 25
+    TabOrder = 1
+    Visible = False
+  end
+  object Menu: TMainMenu
+    Left = 272
+    Top = 24
     object M_File: TMenuItem
       Caption = #1060#1072#1081#1083
       object M_File_Open: TMenuItem
@@ -48,9 +56,5 @@ object MainForm: TMainForm
         Caption = #1042#1099#1093#1086#1076
       end
     end
-  end
-  object ADOConnection1: TADOConnection
-    Left = 504
-    Top = 64
   end
 end
