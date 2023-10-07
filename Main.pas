@@ -41,6 +41,139 @@ begin
   stringList := TStringList.Create;                                             // Создаем экземпляр TStringList
 end;
 
+procedure TMainForm.M_File_MSAccessClick(Sender: TObject); 
+var
+  openFileDialog: TOpenDialog;
+  cat: OLEVariant;
+  Connection: TADOConnection;
+  Command: TADOCommand;
+  Table: TADOTable;
+  i,j: longint;
+  tempstr:shortstring;
+begin
+  openFileDialog := TOpenDialog.Create(nil);
+  try
+    openFileDialog.Filter := 'Файл MS Access (*.mdb)|*.mdb';
+    openFileDialog.DefaultExt := '.mdb';
+    if openFileDialog.Execute then begin                                        // Если пользователь выбирает файл и нажимает кнопку "Открыть"
+      cat := CreateOleObject('ADOX.Catalog');                                   // Создаем БД
+      cat.Create('Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' +              // Настраиваем параметры подключения
+      openFileDialog.FileName + ';Jet OLEDB:Database Password=');
+      Connection := TADOConnection.Create(nil);                                 // Подключаемся к БД
+      Connection.ConnectionString := cat.ActiveConnection;                      // Настраиваем параметры подключения
+      Connection.Open;                                                          // Открываем соединение
+      Command := TADOCommand.Create(nil);                                       // Создаем экземпляр компонента TADOCommand
+      try
+        Command.Connection := Connection;                                       // Устанавливаем соединение для выполнения SQL-запроса
+        Command.CommandText :=                                                  // Формируем SQL-запрос для создания таблицы
+          'CREATE TABLE dns_records (ID INT PRIMARY KEY, '+
+          'dt DATETIME, thread_id VARCHAR(4), context VARCHAR(7), '+
+          'packet_id VARCHAR(16), ut_indicator VARCHAR(3), '+
+          'sr_indicator VARCHAR(3), remote_ip VARCHAR(39), '+
+          'xid VARCHAR(4), qr VARCHAR(3), flags VARCHAR(4), '+
+          'flags_codes VARCHAR(4), response_code VARCHAR(8), '+
+          'question_type VARCHAR(6), question_name VARCHAR)';
+        Command.Execute;                                                        // Выполняем запрос
+      finally
+        Command.Free;
+      end;
+      Table := TADOTable.Create(nil);
+      Table.Connection := Connection;
+      Table.TableName := 'dns_records';
+      Table.Active := true;
+      i:=29;
+      PB.Min:=0;
+      PB.Max:=(lineCount - 29) div 2;
+      PB.Visible:=true;
+      while i < lineCount -2 do with Table do begin
+        Append;
+        i:=i+2;
+        j:=0;
+        FieldByName('ID').AsInteger := i-29;
+        FieldByName('dt').AsString := copy(stringlist[i],0,19); 
+        if copy(stringlist[i],19,1) <> ' ' then j:=j+1;
+        FieldByName('thread_id').AsString := copy(stringlist[i],20+j,4); 
+        FieldByName('context').AsString := copy(stringlist[i],25+j,7); 
+        FieldByName('packet_id').AsString := copy(stringlist[i],33+j,16); 
+        FieldByName('ut_indicator').AsString := copy(stringlist[i],50+j,3);
+        FieldByName('sr_indicator').AsString := copy(stringlist[i],54+j,3);
+        if pos('.',copy(stringlist[i],58+j,15)) > 0  then
+         FieldByName('remote_ip').AsString := copy(stringlist[i],58+j,15)
+        else begin
+         tempstr:= copy(stringlist[i],58+j,39);
+         if Pos(' ',tempstr)>15 then j:=j+Pos(' ',tempstr)-16;
+         FieldByName('remote_ip').AsString := copy(tempstr,0,Pos(' ',tempstr)-1);
+        end;
+        FieldByName('xid').AsString := copy(stringlist[i],74+j,4);
+        FieldByName('qr').AsString := copy(stringlist[i],79+j,3); 
+        FieldByName('flags').AsString := copy(stringlist[i],84+j,4); 
+        FieldByName('flags_codes').AsString := copy(stringlist[i],89+j,4); 
+        FieldByName('response_code').AsString := copy(stringlist[i],94+j,8); 
+        FieldByName('question_type').AsString := copy(stringlist[i],104+j,6); 
+        FieldByName('question_name').AsString := copy(stringlist[i],111+j,length(stringlist[i])); 
+        if i mod 19 = 0 then begin 
+          PB.Position:=(i - 29) div 2;
+          Application.ProcessMessages;
+        end;
+        Post;
+      end;
+      pb.Visible:=false;
+      Table.Active := False;
+      Connection.Close;
+      cat := NULL;
+      Connection.Free;
+    end;    
+  finally
+    openFileDialog.Free;
+  end;  
+end;
+     
+procedure TMainForm.M_File_OpenClick(Sender: TObject);
+var
+  openFileDialog: TOpenTextFileDialog;
+  fileStream: TFileStream;
+  textStream: TStringStream;
+  text: String;
+  i:int64;
+  curline:string;
+begin
+  openFileDialog := TOpenTextFileDialog.Create(nil);
+  try
+    openFileDialog.Options := [ofReadOnly, ofFileMustExist];                    // Настраиваем диалог для открытия текстовых файлов
+    openFileDialog.Filter := 'Текстовые файлы (*.txt)|*.txt';
+    if openFileDialog.Execute then begin                                        // Если пользователь выбирает файл и нажимает кнопку "Открыть"
+      fileStream := TFileStream.Create(openFileDialog.FileName, fmOpenRead);    // Открываем файл в режиме чтения
+      try
+        textStream := TStringStream.Create;                                     // Создаем строковый поток для чтения содержимого файла
+        try
+          textStream.LoadFromStream(fileStream);                                // Загружаем содержимое файла в строковый поток
+          text := textStream.DataString;                                        // Получаем текст из строки потока
+          stringList.Text := text;                                              // Загружаем текст в TStringList
+          lineCount := stringList.Count;                                        // Считаем количество строк в тексте
+          for i := 0 to lineCount-1 do begin
+            curline := stringList[i];
+            if (i=0) then
+              if (pos('DNS Server log file creation at',curline)>0)  then begin
+                StatBar.Panels[0].text := '--== '+curline+' ==--';
+              end
+              else begin
+                showmessage('Неверный формат файла');
+                break;
+              end;
+          end;
+        finally
+         textStream.Free;
+        end;
+      finally
+        fileStream.Free;
+      end;
+    end;
+  finally
+    openFileDialog.Free;
+  end;
+end;
+
+end.
 
 {
 Message logging key (for packets - other items use a subset of these fields):
@@ -70,138 +203,3 @@ Message logging key (for packets - other items use a subset of these fields):
 	  15     Question Type
 	  16     Question Name
 }
-
-    
-procedure TMainForm.M_File_MSAccessClick(Sender: TObject); 
-var
-  openFileDialog: TOpenDialog;
-  cat: OLEVariant;
-  Connection: TADOConnection;
-  Command: TADOCommand;
-  Table: TADOTable;
-  i,j: longint;
-begin
-  openFileDialog := TOpenDialog.Create(nil);
-  try
-    openFileDialog.Filter := 'Файл MS Access (*.mdb)|*.mdb';
-    openFileDialog.DefaultExt := '.mdb';
-    if openFileDialog.Execute then begin                                        // Если пользователь выбирает файл и нажимает кнопку "Открыть"
-      cat := CreateOleObject('ADOX.Catalog');                                   // Создаем БД
-      cat.Create('Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' +              // Настраиваем параметры подключения
-      openFileDialog.FileName + ';Jet OLEDB:Database Password=');
-      Connection := TADOConnection.Create(nil);                                 // Подключаемся к БД
-      Connection.ConnectionString := cat.ActiveConnection;                      // Настраиваем параметры подключения
-      Connection.Open;                                                          // Открываем соединение
-      Command := TADOCommand.Create(nil);                                       // Создаем экземпляр компонента TADOCommand
-      try
-        Command.Connection := Connection;                                       // Устанавливаем соединение для выполнения SQL-запроса
-        Command.CommandText :=                                                  // Формируем SQL-запрос для создания таблицы
-          'CREATE TABLE dns_records (ID INT PRIMARY KEY, '+
-          'dt DATETIME, thread_id VARCHAR, context VARCHAR, '+
-          'packet_id VARCHAR, ut_indicator VARCHAR, '+
-          'sr_indicator VARCHAR, remote_ip VARCHAR, '+
-          'xid VARCHAR, qr VARCHAR, flags VARCHAR, '+
-          'flags_codes VARCHAR, response_code VARCHAR, '+
-          'question_type VARCHAR, question_name VARCHAR)';
-        Command.Execute;                                                        // Выполняем запрос
-      finally
-        Command.Free;
-      end;
-      Table := TADOTable.Create(nil);
-      Table.Connection := Connection;
-      Table.TableName := 'dns_records';
-      Table.Active := true;
-      i:=29;
-      PB.Min:=0;
-      PB.Max:=(lineCount - 29);
-      PB.Visible:=true;
-      while i < lineCount do with Table do begin
-        Append;
-        i:=i+2;
-        j:=0;
-        FieldByName('ID').AsInteger := i-29;
-        FieldByName('dt').AsString := copy(stringlist[i],0,20); 
-        if copy(stringlist[i],0,19) = ' ' then j:=j+1;     
-        FieldByName('thread_id').AsString := copy(stringlist[i],21+j,4); 
-        FieldByName('context').AsString := copy(stringlist[i],26+j,7); 
-        FieldByName('packet_id').AsString := copy(stringlist[i],34+j,16); 
-        FieldByName('ut_indicator').AsString := copy(stringlist[i],51+j,3); 
-        FieldByName('sr_indicator').AsString := copy(stringlist[i],55+j,3); 
-        FieldByName('remote_ip').AsString := copy(stringlist[i],59+j,15); 
-        FieldByName('xid').AsString := copy(stringlist[i],75+j,4); 
-        FieldByName('qr').AsString := copy(stringlist[i],80+j,3); 
-        FieldByName('flags').AsString := copy(stringlist[i],85+j,4); 
-        FieldByName('flags_codes').AsString := copy(stringlist[i],90+j,5); 
-        FieldByName('response_code').AsString := copy(stringlist[i],96+j,7); 
-        FieldByName('question_type').AsString := copy(stringlist[i],105+j,6); 
-        FieldByName('question_name').AsString := copy(stringlist[i],112+j,length(stringlist[i])); 
-        PB.Position:=(i - 29) div 2;
-        Application.ProcessMessages;
-        Post;
-      end;
-      pb.Visible:=false;
-      Table.Active := False;
-      Connection.Close;
-      cat := NULL;
-    end;    
-  finally
-    openFileDialog.Free;
-    Connection.Free;
-  end;  
-end;
-
-
-    //        if (i>29) then 
-    //          if (i mod 2 >0) then begin
-    //            showmessage(curline);
-    //          end;
-            
-//end;      
-
-procedure TMainForm.M_File_OpenClick(Sender: TObject);
-var
-  openFileDialog: TOpenTextFileDialog;
-  fileStream: TFileStream;
-  textStream: TStringStream;
-  text: String;
-  i:int64;
-  curline:string;
-begin
-  openFileDialog := TOpenTextFileDialog.Create(nil);
-  try
-    openFileDialog.Options := [ofReadOnly, ofFileMustExist];                    // Настраиваем диалог для открытия текстовых файлов
-    openFileDialog.Filter := 'Текстовые файлы (*.txt)|*.txt';
-    if openFileDialog.Execute then begin                                        // Если пользователь выбирает файл и нажимает кнопку "Открыть"
-      fileStream := TFileStream.Create(openFileDialog.FileName, fmOpenRead);    // Открываем файл в режиме чтения
-      try
-        textStream := TStringStream.Create;                                     // Создаем строковый поток для чтения содержимого файла
-        try
-          textStream.LoadFromStream(fileStream);                                // Загружаем содержимое файла в строковый поток
-          text := textStream.DataString;                                        // Получаем текст из строки потока
-          stringList.Text := text;                                              // Загружаем текст в TStringList
-          lineCount := stringList.Count;                                        // Считаем количество строк в тексте
-          //ShowMessage('Количество строк: ' + IntToStr(lineCount));              // Выводим количество строк
-          for i := 0 to lineCount-1 do begin
-            curline := stringList[i];
-            if (i=0) then
-              if (pos('DNS Server log file creation at',curline)>0)  then begin
-                StatBar.Panels[0].text := '--== '+curline+' ==--';
-              end
-              else begin
-                showmessage('Неверный формат файла');
-                break;
-              end;
-          end;
-        finally
-         textStream.Free;
-        end;
-      finally
-        fileStream.Free;
-      end;
-    end;
-  finally
-    openFileDialog.Free;
-  end;
-end;
-
-end.

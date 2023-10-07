@@ -22,8 +22,8 @@ object MainForm: TMainForm
       item
         Width = 50
       end>
-    ExplicitTop = 537
-    ExplicitWidth = 999
+    ExplicitTop = 33
+    ExplicitWidth = 371
   end
   object PB: TProgressBar
     Left = 8
