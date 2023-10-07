@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.968,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\Main.dfm=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.968,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\Main.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.968,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\Main.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.764,=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.728,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\LogViewer.dproj=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Project2.dproj</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.968,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\Main.pas=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.728,C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\Project2.dproj=C:\Users\nefari0\Documents\Embarcadero\Studio\Projects\DNSLogViewer\LogViewer.dproj</Transaction>
   </Transactions>
 </BorlandProject>
