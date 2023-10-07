@@ -41,6 +41,22 @@ begin
   stringList := TStringList.Create;                                             // Создаем экземпляр TStringList
 end;
 
+function ParseDN(str:shortstring):shortstring;
+var
+  i:byte;
+  res:shortstring;
+begin
+  res:='';
+  for i := 1 to length(str)-3 do begin
+    if str[i]='(' then begin
+      if i>1 then res:=res+'.';
+      res:=res+copy(str,i+3,strtoint(str[i+1]));
+    end;
+  end;
+  showmessage(res);
+  result:=res;
+end;
+
 procedure TMainForm.M_File_MSAccessClick(Sender: TObject); 
 var
   openFileDialog: TOpenDialog;
@@ -110,7 +126,7 @@ begin
         FieldByName('flags_codes').AsString := copy(stringlist[i],89+j,4); 
         FieldByName('response_code').AsString := copy(stringlist[i],94+j,8); 
         FieldByName('question_type').AsString := copy(stringlist[i],104+j,6); 
-        FieldByName('question_name').AsString := copy(stringlist[i],111+j,length(stringlist[i])); 
+        FieldByName('question_name').AsString := ParseDN(copy(stringlist[i],111+j,length(stringlist[i])));
         if i mod 19 = 0 then begin 
           PB.Position:=(i - 29) div 2;
           Application.ProcessMessages;
